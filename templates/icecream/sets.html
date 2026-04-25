@@ -1,0 +1,13 @@
+{% extends "layout/basic.html" %}
+
+{% block content %}
+
+<h2>Наборы мороженого</h2>
+
+<ul>
+    {% for s in sets %}
+        <li>{{ s.name }}</li>
+    {% endfor %}
+</ul>
+
+{% endblock %}

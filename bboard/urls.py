@@ -1,39 +1,34 @@
 from django.urls import path
-from bboard.views import (
-    index, by_rubric, BbCreateView,
-    select_columns, exclude_values,
-    bb_list, bb_detail, bb_delete,
-    UserListView, UserDetailView,
-    tags_demo,     IceCreamListView,
-    IceCreamCreateView,
-    IceCreamUpdateView,
-    IceCreamDeleteView,
-)
+from bboard import views
 
 urlpatterns = [
-    path('', index, name='index'),
+    path('', views.index, name='index'),
 
-    # объявления
-    path('add/', BbCreateView.as_view(), name='add'),
-    path('bb/<int:id>/', bb_detail, name='bb_detail'),
-    path('bb/<int:id>/delete/', bb_delete, name='bb_delete'),
+    path('rubric/<int:rubric_id>/', views.by_rubric, name='by_rubric'),
 
-    # рубрики
-    path('rubric/<int:rubric_id>/', by_rubric, name='by_rubric'),
+    path('bb/<int:id>/', views.bb_detail, name='bb_detail'),
+    path('bb/<int:id>/delete/', views.bb_delete, name='bb_delete'),
 
-    # выборки
-    path('select/', select_columns, name='select_columns'),
-    path('exclude/', exclude_values, name='exclude_values'),
+    path('add/', views.BbCreateView.as_view(), name='add'),
 
-    # пользователи
-    path('users/', UserListView.as_view(), name='users_list'),
-    path('user/<int:pk>/', UserDetailView.as_view(), name='user_detail'),
+    path('select/', views.select_columns, name='select_columns'),
+    path('exclude/', views.exclude_values, name='exclude_values'),
+    path('list/', views.bb_list, name='bb_list'),
 
-    path('tags/', tags_demo, name='tags_demo'),
-    path('icecream/add/', IceCreamCreateView.as_view(), name='icecream_add'),
-    path('icecream/<int:pk>/edit/', IceCreamUpdateView.as_view(), name='icecream_edit'),
-    path('icecream/<int:pk>/delete/', IceCreamDeleteView.as_view(), name='icecream_delete'),
-    path('icecream/', IceCreamListView.as_view(), name='icecream_list'),
+    path('icecream/create/', views.icecream_create, name='icecream_create'),
 
+    path('icecream/list/', views.available_icecream, name='icecream_list'),
 
+    path('icecream/sets/', views.icecream_sets_short, name='icecream_sets_short'),
+    path('icecream/tx/', views.icecream_transaction_demo, name='icecream_transaction_demo'),
+    path('icecream/available/', views.available_icecream, name='available_icecream'),
+
+    path('queryset/', views.queryset_demo, name='queryset_demo'),
+
+    path('users/', views.UserListView.as_view(), name='users_list'),
+    path('users/<int:pk>/', views.UserDetailView.as_view(), name='user_detail'),
+
+    path('contact/', views.contact_view, name='contact'),
+    path('tags/', views.tags_demo, name='tags_demo'),
+    path('icecream/list/', views.icecream_list, name='icecream_list'),
 ]

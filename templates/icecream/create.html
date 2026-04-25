@@ -1,25 +1,29 @@
 {% extends "layout/basic.html" %}
 
 {% block content %}
+{{ form.content_bb }}
 
 <div class="form-wrapper">
     <div class="form-card">
 
-        <h2>🍦 Добавить мороженое</h2>
+        <h2>🍦 Добавить мороженое (несколько)</h2>
 
         <form method="post">
             {% csrf_token %}
-            {{ form.as_p }}
+
+            {{ formset.management_form }}
+
+            {% for form in formset %}
+                <div style="margin-bottom: 15px;">
+                    {{ form.as_p }}
+                </div>
+                <hr>
+            {% endfor %}
 
             <button type="submit" class="btn primary">
                 Сохранить
             </button>
         </form>
-
-        <br>
-
-
-        </a>
 
     </div>
 </div>

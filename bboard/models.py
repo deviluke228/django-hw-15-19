@@ -5,10 +5,16 @@ from django.db import models
 
 def validate_even(val):
     if val % 2 != 0:
-        raise ValidationError('Число %(value)s нечётное', code='odd',
-                              params={'value': val})
+        raise ValidationError(
+            'Число %(value)s нечётное',
+            code='odd',
+            params={'value': val}
+        )
 
 
+# -----------------------
+# RUBRIC
+# -----------------------
 class Rubric(models.Model):
     name = models.CharField(
         max_length=20,
@@ -25,13 +31,10 @@ class Rubric(models.Model):
         ordering = ('name',)
 
 
+# -----------------------
+# BBOARD
+# -----------------------
 class Bb(models.Model):
-    # KINDS = (
-    #     ('b', 'Куплю'),
-    #     ('s', 'Продам'),
-    #     ('c', 'Обменяю'),
-    # )
-
     KINDS = (
         ('Купля-продажа', (
             ('b', 'Куплю'),
@@ -41,13 +44,6 @@ class Bb(models.Model):
             ('c', 'Обменяю'),
         )),
     )
-
-    # KINDS = (
-    #     (None, 'Выберите тип публикуемого объявления'),
-    #     ('b', 'Куплю'),
-    #     ('s', 'Продам'),
-    #     ('c', 'Обменяю'),
-    # )
 
     kind = models.CharField(
         max_length=1,
@@ -71,6 +67,13 @@ class Bb(models.Model):
         verbose_name='Описание',
     )
 
+    # ✔ BBCode поле (ИСПРАВЛЕНО)
+    content_bb = models.TextField(
+        null=True,
+        blank=True,
+        verbose_name="BBCode описание"
+    )
+
     price = models.DecimalField(
         max_digits=13,
         decimal_places=2,
@@ -87,9 +90,7 @@ class Bb(models.Model):
     )
 
     rubric = models.ForeignKey(
-        # Rubric,
         'Rubric',
-        # 'bboard.Rubric',
         null=True,
         on_delete=models.PROTECT,
         verbose_name='Рубрика',
@@ -98,19 +99,8 @@ class Bb(models.Model):
     def __str__(self):
         return f'Объявление: {self.title}'
 
-    # def save(self, *args, **kwargs):
-    #     if self.is_model_correct():
-    #         super().save(*args, **kwargs)
-
-    # def delete(self, *args, **kwargs):
-    #     if self.need_to_delete():
-    #         super().delete(*args, **kwargs)
-
     def title_and_price(self):
-        if self.price:
-            return f'{self.title} ({self.price})'
-        else:
-            return self.title
+        return f'{self.title} ({self.price})' if self.price else self.title
 
     title_and_price.short_description = 'Название и цена'
 
@@ -120,7 +110,7 @@ class Bb(models.Model):
             errors['content'] = ValidationError('Укажите описание товара')
 
         if self.price and self.price < 0:
-            errors['price'] = ValidationError('Укажите неотрицательное значение цены')
+            errors['price'] = ValidationError('Цена не может быть отрицательной')
 
         if errors:
             raise ValidationError(errors)
@@ -130,11 +120,25 @@ class Bb(models.Model):
         verbose_name_plural = 'Объявления'
         ordering = ['-published']
 
+
+# -----------------------
+# ICE CREAM MANAGER (ВАЖНО: ВЫШЕ МОДЕЛИ)
+# -----------------------
+class IceCreamManager(models.Manager):
+    def available(self):
+        return self.filter(is_available=True)
+
+
+# -----------------------
+# ICE CREAM
+# -----------------------
 class IceCream(models.Model):
     name = models.CharField(max_length=50, verbose_name="Название")
     flavor = models.CharField(max_length=50, verbose_name="Вкус")
     price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Цена")
     is_available = models.BooleanField(default=True, verbose_name="В наличии")
+
+    objects = IceCreamManager()
 
     def __str__(self):
         return self.name
@@ -142,3 +146,65 @@ class IceCream(models.Model):
     class Meta:
         verbose_name = "Мороженое"
         verbose_name_plural = "Мороженое"
+
+
+# -----------------------
+# TOPPING
+# -----------------------
+class Topping(models.Model):
+    name = models.CharField(max_length=50, verbose_name="Топпинг")
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = "Топпинг"
+        verbose_name_plural = "Топпинги"
+
+
+# -----------------------
+# MANY TO MANY SET
+# -----------------------
+class IceCreamSet(models.Model):
+    name = models.CharField(max_length=100, verbose_name="Набор")
+
+    icecreams = models.ManyToManyField(IceCream)
+    toppings = models.ManyToManyField(Topping)
+
+    def __str__(self):
+        return self.name
+
+
+# -----------------------
+# ABSTRACT + INHERITANCE
+# -----------------------
+class Product(models.Model):
+    name = models.CharField(max_length=100)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+
+    class Meta:
+        abstract = True
+
+    def __str__(self):
+        return self.name
+
+
+class Food(Product):
+    expiration_date = models.DateField()
+
+
+class PremiumIceCream(Food):
+    flavor = models.CharField(max_length=50)
+    is_organic = models.BooleanField(default=False)
+
+
+# -----------------------
+# CONTACT FORM SAVE MODEL
+# -----------------------
+class ContactMessage(models.Model):
+    name = models.CharField(max_length=100)
+    message = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name
